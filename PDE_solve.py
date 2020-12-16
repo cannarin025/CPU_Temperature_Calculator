@@ -63,31 +63,31 @@ def Neumann_Boundaries(initial_state, hx, hy, amb_temp, wind_speed, k, natural=T
                 #     surf_temp = initial_state[i, j - 1]
                 #     initial_state[i, j] = surf_temp - ((2 * hy * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
 
-                # if i == 0:  # bottom boundary
-                #     surf_temp = initial_state[i + 1, j]
-                #     initial_state[i, j] = initial_state[i + 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
-                # if i == initial_y_dim - 1:  # top boundary
-                #     surf_temp = initial_state[i - 1, j]
-                #     initial_state[i, j] = initial_state[i - 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
-                # if j == 0:  # left boundary
-                #     surf_temp = initial_state[i, j + 1]
-                #     initial_state[i, j] = initial_state[i, j + 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
-                # if j == initial_x_dim - 1:  # right boundary
-                #     surf_temp = initial_state[i, j - 1]
-                #     initial_state[i, j] = initial_state[i, j - 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
-
                 if i == 0:  # bottom boundary
                     surf_temp = initial_state[i + 1, j]
-                    initial_state[i, j] = initial_state[i + 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
+                    initial_state[i, j] = initial_state[i + 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
                 if i == initial_y_dim - 1:  # top boundary
                     surf_temp = initial_state[i - 1, j]
-                    initial_state[i, j] = initial_state[i - 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
+                    initial_state[i, j] = initial_state[i - 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
                 if j == 0:  # left boundary
                     surf_temp = initial_state[i, j + 1]
-                    initial_state[i, j] = initial_state[i, j + 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
+                    initial_state[i, j] = initial_state[i, j + 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
                 if j == initial_x_dim - 1:  # right boundary
                     surf_temp = initial_state[i, j - 1]
-                    initial_state[i, j] = initial_state[i, j - 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
+                    initial_state[i, j] = initial_state[i, j - 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (amb_temp - surf_temp)) / -k)
+
+                # if i == 0:  # bottom boundary
+                #     surf_temp = initial_state[i + 1, j]
+                #     initial_state[i, j] = initial_state[i + 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
+                # if i == initial_y_dim - 1:  # top boundary
+                #     surf_temp = initial_state[i - 1, j]
+                #     initial_state[i, j] = initial_state[i - 2, j] - ((2 * hx * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
+                # if j == 0:  # left boundary
+                #     surf_temp = initial_state[i, j + 1]
+                #     initial_state[i, j] = initial_state[i, j + 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
+                # if j == initial_x_dim - 1:  # right boundary
+                #     surf_temp = initial_state[i, j - 1]
+                #     initial_state[i, j] = initial_state[i, j - 2] - ((2 * hy * H_Natural(surf_temp, amb_temp) * (surf_temp - amb_temp)) / -k)
 
             elif not natural:
                 if i == 0:  # bottom boundary
@@ -120,7 +120,7 @@ def Jacobi_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess =
     k = 150000
     q = 0.5e9
 
-    for iteration in range(100000):
+    for iteration in range(10000):
         final_state = np.zeros((initial_y_dim, initial_x_dim))
         initial_state = Neumann_Boundaries(initial_state, hx, hy, amb_temp, wind_speed, k, natural)
 
@@ -130,9 +130,9 @@ def Jacobi_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess =
                 s = - q / k
                 updated_value = (((1/(hx**2)) * initial_state[i+1, j]) + ((1/(hx**2)) * initial_state[i-1, j]) + ((1/(hy**2)) * initial_state[i, j-1]) + ((1/(hy**2)) * initial_state[i, j+1]) - s) / ((2/(hx**2)) + (2/(hy**2)))
                 final_state[i,j] = updated_value
-
+        a = 1
         initial_state = final_state
-
+        #pass
 
     #tidies up array
     final_state = np.delete(final_state, 0, 0)
