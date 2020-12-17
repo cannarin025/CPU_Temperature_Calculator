@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 
 def H_Natural(surf_temp, amb_temp):
@@ -142,9 +143,63 @@ def Jacobi_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess =
 
     print()
     print(final_state)
-            
+    return final_state
 
-Jacobi_Solve(0.014,0.002, x_points= 10, y_points=10, initial_guess=100)
+def GS_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess = 0, natural = True):
+    # definitions
+    hx = x_range / x_points
+    hy = y_range / y_points
+
+    initial_x_dim = x_points + 2
+    initial_y_dim = y_points + 2
+    initial_state = np.full((initial_y_dim, initial_x_dim), initial_guess, dtype=float)
+
+    # initial boundary conditions
+    amb_temp = 20
+    wind_speed = 30
+    k = 150000
+    q = 0.5e9
+
+    for iteration in range(10000):
+        initial_state = Neumann_Boundaries(initial_state, hx, hy, amb_temp, wind_speed, k, natural)
+        final_state = np.empty(np.shape(initial_state), dtype=float)
+        #final_state = copy.copy(initial_state)
+
+        #copying boundaries of initial state
+        final_state[0] = initial_state[0]
+        final_state[initial_y_dim - 1] = initial_state[initial_y_dim - 1]
+        final_state[:,0] = initial_state[:,0]
+        final_state[:,initial_x_dim - 1] = initial_state[:,initial_x_dim - 1]
+
+        #final_state = copy.copy(initial_state)
+        # solving iteration of Jacobi method
+        for i in range(1, initial_y_dim - 1):  # y
+            for j in range(1, initial_x_dim - 1):  # x
+                s = - q / k
+                # #using updated initial value boundaries from initial_state where they are needed by final_state[i-1] for memory efficiency
+                # if i == 1 or j == 1:
+                #     updated_value = (((1/(hx**2)) * initial_state[i+1, j]) + ((1/(hx**2)) * initial_state[i-1, j]) + ((1/(hy**2)) * initial_state[i, j-1]) + ((1/(hy**2)) * initial_state[i, j+1]) - s) / ((2/(hx**2)) + (2/(hy**2)))
+                # else:
+                #     updated_value = (((1 / (hx ** 2)) * initial_state[i + 1, j]) + ((1 / (hx ** 2)) * final_state[i - 1, j]) + ((1 / (hy ** 2)) * final_state[i, j - 1]) + ((1 / (hy ** 2)) * initial_state[i, j + 1]) - s) / ((2 / (hx ** 2)) + (2 / (hy ** 2)))
+                updated_value = (((1 / (hx ** 2)) * initial_state[i + 1, j]) + ((1 / (hx ** 2)) * final_state[i - 1, j]) + ((1 / (hy ** 2)) * final_state[i, j - 1]) + ((1 / (hy ** 2)) * initial_state[i, j + 1]) - s) / ((2 / (hx ** 2)) + (2 / (hy ** 2)))
+
+                final_state[i, j] = updated_value
+
+        initial_state = final_state
+
+    # tidies up array
+    final_state = np.delete(final_state, 0, 0)
+    final_state = np.delete(final_state, 0, 1)
+    final_state = np.delete(final_state, initial_y_dim - 2, 0)
+    final_state = np.delete(final_state, initial_x_dim - 2, 1)
+
+    print()
+    print(final_state)
+    return  final_state
+
+
+#Jacobi_Solve(0.014,0.002, x_points= 10, y_points=10, initial_guess=100)
+GS_Solve(0.014, 0.002, x_points=10, y_points=10, initial_guess=8600)
 
 
 
