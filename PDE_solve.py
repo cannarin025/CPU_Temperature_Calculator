@@ -130,6 +130,8 @@ def Jacobi_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess =
             for j in range(1, initial_x_dim - 1): #x
                 s = - q / k
                 updated_value = (((1/(hx**2)) * initial_state[i+1, j]) + ((1/(hx**2)) * initial_state[i-1, j]) + ((1/(hy**2)) * initial_state[i, j-1]) + ((1/(hy**2)) * initial_state[i, j+1]) - s) / ((2/(hx**2)) + (2/(hy**2)))
+                # c = 1/(2*((hy**2) + (hx**2)))
+                # updated_value = c * (((hy**2) * initial_state[i - 1, j]) + ((hy**2) * initial_state[i + 1, j]) + ((hx**2) * initial_state[i, j + 1]) + ((hx**2) * initial_state[i, j - 1]) - ((hx**2) * (hy**2) * s))
                 final_state[i,j] = updated_value
         a = 1
         initial_state = final_state
@@ -198,8 +200,8 @@ def GS_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess = 0, 
     return  final_state
 
 
-#Jacobi_Solve(0.014,0.002, x_points= 10, y_points=10, initial_guess=100)
-GS_Solve(0.014, 0.002, x_points=10, y_points=10, initial_guess=8600)
+Jacobi_Solve(0.014,0.002, x_points= 10, y_points=10, initial_guess=9000)
+#GS_Solve(0.014, 0.002, x_points=10, y_points=10, initial_guess=8600)
 
 
 
