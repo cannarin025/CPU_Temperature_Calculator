@@ -220,9 +220,8 @@ def GS_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess = 0, 
     print(final_state)
     return  final_state
 
-
-Jacobi_Solve(0.014,0.002, x_points= 10, y_points=10, initial_guess=18)
-#GS_Solve(0.014, 0.002, x_points=10, y_points=10, initial_guess=8600)
+#Jacobi_Solve(0.014,0.002, x_points= 10, y_points=10, initial_guess=18)
+GS_Solve(0.014, 0.002, x_points=10, y_points=10, initial_guess=8600)
 
 
 
