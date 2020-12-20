@@ -120,7 +120,7 @@ def Jacobi_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess =
     q = 0.5e9
     #q = 0
 
-    for iteration in range(10000):
+    for iteration in range(3000):
         final_state = np.zeros((initial_y_dim, initial_x_dim))
         initial_state = Neumann_Boundaries(initial_state, hx, hy, amb_temp, wind_speed, k, natural)
         #a = 3 #test
@@ -153,5 +153,5 @@ def Jacobi_Solve(x_range, y_range, x_points = 10, y_points = 10, initial_guess =
     return final_state
 
 
-Jacobi_Solve(0.014, 0.001, x_points= 10, y_points=10, initial_guess=20)
+Jacobi_Solve(0.014, 0.001, x_points= 140, y_points=10, initial_guess=8000)
 

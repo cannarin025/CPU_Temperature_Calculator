@@ -36,7 +36,7 @@ def create_HS(n_fins, h, fin_height, fin_width, fin_spacing): #input values in m
                     heat_sink[y, x] = 1
 
                 if y == 0:
-                    if x >= l/2 - 10 and x < l/2 + 10: #centres ceramic casing on heat sink
+                    if x >= (l/2 - 10)/h and x < (l/2 + 10)/h: #centres ceramic casing on heat sink
                         heat_sink[y,x] = 2
 
                 elif y >= 4/h:
@@ -61,5 +61,5 @@ def create_HS(n_fins, h, fin_height, fin_width, fin_spacing): #input values in m
 
     return heat_sink
 
-HS = create_HS(6, 1, 20, 3, 2)
+HS = create_HS(6, 0.2, 20, 3, 2)
 a = 1
