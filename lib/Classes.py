@@ -1,5 +1,6 @@
 import numpy as np
 from Functions import *
+from lib.BoundaryRef import BoundaryRef
 
 #Generic element class to be customized e.g. processor or casing
 class Element:
@@ -111,8 +112,8 @@ class Element:
             # lx = object.get_initial_x_dim() - 2
             # sx = self.get_initial_x_dim() - 2
 
-            boundary_start = (lx / 2) - (sx / 2) + 1  # accounts for horizontal ghost points
-            boundary_end = (lx / 2) + (sx / 2) + 1  # accounts for horizontal ghost points
+            boundary_start = (((lx / 2) - (sx / 2)) / h) + 1  # accounts for horizontal ghost points
+            boundary_end = (((lx / 2) + (sx / 2)) / h) + 1  # accounts for horizontal ghost points
 
         else:
             lx = self.get_x_dim()
@@ -124,10 +125,21 @@ class Element:
 
         return int(boundary_start), int(boundary_end)
 
-    def __mount(self, object, mount_y): #Creates boundary
+    def __mount(self, object, mount_y, boundary_ref): #Creates boundary
         boundary_start, boundary_end = self.get_bounds(object)
-        for x in range(boundary_start, boundary_end):
-            self.set_initial_temp(x,mount_y, -50)
+
+        boundary_ref.set_self_boundary_start(boundary_start)
+        boundary_ref.set_self_boundary_end(boundary_end)
+
+        if boundary_end - boundary_start == self._initial_x_dim - 2: #case self is shorter. (sets entire side as boundary)
+            for x in range(1, self._initial_x_dim - 1):
+                self.set_initial_temp(x, mount_y, -50)
+                pass
+
+        else:
+            for x in range(boundary_start, boundary_end): #case where self is longer. (sets required length)
+                self.set_initial_temp(x,mount_y, -50)
+                pass
 
     def mount_top(self, object, first_call = None): #mounts object above self
         if first_call is False:
@@ -149,8 +161,9 @@ class Element:
             return
 
         mount_y = self._initial_y_dim - 2
-        self.__mount(object, mount_y)
-        self.set_mounted_top(object)
+        offset = (self._initial_x_dim - object.get_initial_x_dim())/2
+        self.set_mounted_top(BoundaryRef(object=object,x_offset=offset, self_mount_y=mount_y, object_mount_y=1))
+        self.__mount(object, mount_y, self.get_mounted_top())
         object.mount_bottom(self, not first_call)
 
     def mount_bottom(self, object, first_call = None): #mounts object below self
@@ -173,8 +186,9 @@ class Element:
             return
 
         mount_y = 1
-        self.__mount(object, mount_y)
-        self.set_mounted_bottom(object)
+        offset = (self._initial_x_dim - object.get_initial_x_dim()) / 2
+        self.set_mounted_bottom(BoundaryRef(object=object, x_offset=offset, self_mount_y=mount_y, object_mount_y=object._initial_y_dim - 2))
+        self.__mount(object, mount_y, self.get_mounted_bottom())
 
         object.mount_top(self, not first_call)
 
