@@ -61,5 +61,5 @@ def create_HS(n_fins, h, fin_height, fin_width, fin_spacing): #input values in m
 
     return heat_sink
 
-HS = create_HS(6, 0.2, 20, 3, 2)
+HS = create_HS(6, 1, 20, 3, 2)
 a = 1

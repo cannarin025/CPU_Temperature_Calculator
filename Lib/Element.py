@@ -239,7 +239,6 @@ class Element:
                 if self._natural:
 
                     """Central Difference"""
-                    # central difference calculated by hand (does not work as the one above does)
                     if y == 0:  # bottom
                         surf_temp = self.get_initial_temp(x, y + 1)
                         phi_s = Phi_s(surf_temp, self._amb_temp, natural=self._natural)
@@ -357,7 +356,7 @@ class Element:
     def save_data(self):
         if self._final:
             file_name = f"{self._name}_data"
-            file_path = f"Data\\{file_name}.csv"
+            file_path = f"DataF{file_name}.csv"
             np.savetxt(file_path, self._final_state, delimiter=",")
 
     def graph_temperature(self):
