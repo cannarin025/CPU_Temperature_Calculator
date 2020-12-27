@@ -88,7 +88,10 @@ class HeatSink(Element):
         else:
             raise Exception("Input heat sink dimensions not evenly divisible into grid")
 
-    def apply_neumann_boundaries(self):
+    def mount_top(self, object, first_call = None):
+        raise Exception("You cannot mount objects ontop of a heat sink. Please mount underneath instead!")
+
+    def __apply_neumann_boundaries(self):
         for y in range(self._initial_y_dim):
             for x in range(self._initial_x_dim):
                 if self._natural:
@@ -150,7 +153,7 @@ class HeatSink(Element):
     def jacobi_iteration(self):
         self._flux_out = 0
         self.reset_final_temp()
-        self.apply_neumann_boundaries()
+        self.__apply_neumann_boundaries()
 
         for y in range(1, self._initial_y_dim - 1):
             fin = True
@@ -158,6 +161,7 @@ class HeatSink(Element):
             for x in range(1, self._initial_x_dim - 1):
                 #new_T = self._amb_temp #so space inbetween fins is ambient temp
                 new_T = self._initial_guess
+                #new_T = self.get_initial_temp(x,y)
                 if y <= 4 / self._h:
                     if y == 1 and self.get_mounted_bottom() is not None:
                         new_T = self._Element__mounted_CDS_bottom(x,y)
