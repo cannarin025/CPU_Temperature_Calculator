@@ -232,7 +232,6 @@ class Element:
     #         print("No valid side entered")
     #         return
 
-
     def __apply_neumann_boundaries(self):
         for y in range(self._initial_y_dim):
             for x in range(self._initial_x_dim):
@@ -356,7 +355,7 @@ class Element:
     def save_data(self):
         if self._final:
             file_name = f"{self._name}_data"
-            file_path = f"DataF{file_name}.csv"
+            file_path = f"Data\\{file_name}.csv"
             np.savetxt(file_path, self._final_state, delimiter=",")
 
     def graph_temperature(self):
