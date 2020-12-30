@@ -43,16 +43,14 @@ class HeatSink(Element):
             raise Exception("Fin spacing must be atleast two cell lengths!")
 
         if is_divisible(self._fin_spacing, self._h) and is_divisible(self._fin_width, self._h) and is_divisible(self._fin_height + 4, self._h) and is_divisible(4, self._h):
-            self._l = (self._fin_width + self._fin_spacing) * (self._n_fins - 1) + self._fin_width
+            self._x_dim = (self._fin_width + self._fin_spacing) * (self._n_fins - 1) + self._fin_width #width of heatsink in mm
 
-            if self._l % 2 != 0:  # checks head sink width is even to make centering on ceramic easier.
-                raise Exception("Heat sink width must be even. Current width:", self._l, "mm")
+            if self._x_dim % 2 != 0:  # checks head sink width is even to make centering on ceramic easier.
+                raise Exception("Heat sink width must be even. Current width:", self._x_dim, "mm")
 
-
-            self._x_dim = int(self._l / self._h)
-            self._y_dim = int((self._fin_height / self._h)+ (4 / self._h))
-            self._initial_x_dim = self._x_dim + 2
-            self._initial_y_dim = self._y_dim + 2
+            self._y_dim = 4 + self._fin_height #height of heatsink in mm
+            self._initial_x_dim = int(self._x_dim / self._h) + 2
+            self._initial_y_dim = int((self._fin_height / self._h) + (4 / self._h)) + 2
             self._k_array = np.full((self._initial_y_dim, self._initial_x_dim), self._k)
             self._q_array = np.full((self._initial_y_dim, self._initial_x_dim), self._q)
             self._fin_cells = self._fin_width / self._h
@@ -61,10 +59,10 @@ class HeatSink(Element):
 
             self._initial_state = np.zeros((self._initial_y_dim, self._initial_x_dim))
 
-            for y in range(1, self._y_dim + 1):
+            for y in range(1, self._initial_y_dim - 1): #looping over "real" cells
                 fin = True
                 cell_count = 0
-                for x in range(1, self._x_dim + 1):
+                for x in range(1, self._initial_x_dim - 1): #looping over "real" cells
                     if y <= 4 / self._h:
                         self.set_initial_temp(x, y, self._initial_guess)
 

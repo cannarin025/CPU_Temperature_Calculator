@@ -314,7 +314,7 @@ class Element:
             k_sum = 3 * k + top_k
             s = q * h2
 
-            new_T = (top_k * other.get_initial_temp(ref_x, ref_y)
+            new_T = (top_k * other.get_initial_temp(ref_x , ref_y)
                      + k * self.get_initial_temp(x, y - 1)
                      + k * self.get_initial_temp(x - 1, y)
                      + k * self.get_initial_temp(x + 1, y) + s) / k_sum

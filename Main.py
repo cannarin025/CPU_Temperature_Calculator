@@ -2,14 +2,14 @@ from Lib.Element import Element
 from Lib.HeatSink import HeatSink
 
 
-step_size = 1
+step_size = 0.5
 amb_temp = 20
-initial_guess = 5000
+initial_guess = 3000
 max_iterations = 1000
 
 processor = Element(name = "CPU", x_dim=14, y_dim=2, h=step_size, k=150e-3, q=0.5, amb_temp=amb_temp, initial_guess=initial_guess)
-ceramic = Element(name = "Casing", x_dim=20, y_dim=3, h = step_size, k = 230e-3, q = 0, amb_temp=amb_temp, initial_guess=initial_guess)
-heat_sink = HeatSink(name = "HeatSink", n_fins=8, h = step_size, fin_height=5, fin_width=2, fin_spacing=2, initial_guess=initial_guess)
+ceramic = Element(name = "Casing", x_dim=20, y_dim=4, h = step_size, k = 230e-3, q = 0, amb_temp=amb_temp, initial_guess=initial_guess)
+heat_sink = HeatSink(name = "HeatSink", n_fins=5, h = step_size, fin_height=5, fin_width=2, fin_spacing=2, initial_guess=initial_guess)
 processor.mount_top(ceramic)
 ceramic.mount_top(heat_sink)
 
