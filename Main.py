@@ -1,5 +1,6 @@
-from Lib.Element import *
-from Lib.HeatSink import *
+from Lib.Element import Element
+from Lib.HeatSink import HeatSink
+
 
 step_size = 1
 amb_temp = 20

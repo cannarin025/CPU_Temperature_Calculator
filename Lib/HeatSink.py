@@ -8,7 +8,7 @@ class HeatSink(Element):
     _initial_x_dim = 0
     _initial_y_dim = 0
 
-    def __init__(self, name, n_fins, fin_height, fin_width, fin_spacing, h = 0.1, k = 100, q = 0, amb_temp = 20, initial_guess = 0, tolerance = False, natural = True): #input values in mm
+    def __init__(self, name, n_fins, fin_height, fin_width, fin_spacing, h = 0.1, k = 250e-3, q = 0, amb_temp = 20, initial_guess = 0, tolerance = False, natural = True): #input values in mm
         """
 
         :param name:            dtype:string            name of component

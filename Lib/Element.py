@@ -34,6 +34,9 @@ class Element:
         self._convergence_tolerance = tolerance
 
     #Getters and Setters
+    def get_name(self):
+        return self._name
+
     def get_x_dim(self):
         return self._x_dim
 
