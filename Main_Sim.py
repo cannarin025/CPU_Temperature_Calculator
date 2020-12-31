@@ -1,6 +1,6 @@
 from Lib.Simulation import Simulation
 
-sim = Simulation(grid_spacing=0.5, initial_guess=3000) #cannot set grid spacing to 0.5 for some reason (defaults to 0.1)
+sim = Simulation(grid_spacing=0.5, initial_guess=20) #cannot set grid spacing to 0.5 for some reason (defaults to 0.1)
 
 sim.add_processor(name="CPU", x_dim=14, y_dim=2)
 sim.add_ceramic(name = "Casing", x_dim=20, y_dim=4)
@@ -15,4 +15,4 @@ sim.graph_individual()
 
 a = 1
 
-#todo: Temperature in simulations is skewed left. unsure why. need to fix.
+#todo: Temperature in simulations is skewed left. unsure why. need to fix. Also check initialised values for HS and CPU / ceramic. Not consistent between initial_guess and 0
