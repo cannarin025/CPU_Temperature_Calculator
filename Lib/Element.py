@@ -26,7 +26,7 @@ class Element:
         self._initial_guess = initial_guess
         self._initial_x_dim = int((x_dim / h) + 2)
         self._initial_y_dim = int((y_dim / h) + 2)
-        self._initial_state = np.full((self._initial_y_dim, self._initial_x_dim), initial_guess)
+        self._initial_state = np.full((self._initial_y_dim, self._initial_x_dim), self._initial_guess)
         self._k_array = np.full((self._initial_y_dim, self._initial_x_dim), k)
         self._q_array = np.full((self._initial_y_dim, self._initial_x_dim), q)
         self._final_state = np.zeros((self._initial_y_dim, self._initial_x_dim))

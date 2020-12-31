@@ -58,7 +58,8 @@ class HeatSink(Element):
             self._space_cells = self._fin_spacing / self._h
             fin = True
 
-            self._initial_state = np.zeros((self._initial_y_dim, self._initial_x_dim))
+            #self._initial_state = np.zeros((self._initial_y_dim, self._initial_x_dim))
+            self._initial_state = np.full((self._initial_y_dim, self._initial_x_dim), self._initial_guess)
 
             for y in range(1, self._initial_y_dim - 1): #looping over "real" cells
                 fin = True
@@ -77,7 +78,8 @@ class HeatSink(Element):
                                 fin = False  # end of fin
 
                         else:
-                            self.set_initial_temp(x, y, 0)
+                            #self.set_initial_temp(x, y, 0)
+                            self.set_initial_temp(x, y, self._initial_guess)
                             cell_count += 1
 
                             if cell_count == self._space_cells:
@@ -90,7 +92,7 @@ class HeatSink(Element):
     def mount_top(self, object, first_call = None):
         raise Exception("You cannot mount objects ontop of a heat sink. Please mount underneath instead!")
 
-    def __apply_neumann_boundaries(self): #todo: need to make this account for "top "boundary between fins
+    def __apply_neumann_boundaries(self):
         for y in range(self._initial_y_dim):
             for x in range(self._initial_x_dim):
                 if self._natural:
@@ -120,7 +122,7 @@ class HeatSink(Element):
                         ghost_T = self.get_initial_temp(x - 2, y) + 2 * self._h * (-1 * phi_s / self.get_k(x, y))
                         self.set_initial_temp(x, y, ghost_T)
 
-        for y in range(int(self._base_thickness / self._h), int(self._initial_y_dim)):
+        for y in range(int(self._base_thickness / self._h) + 1, int(self._initial_y_dim)):
             fin = True
             cell_count = 0
             for x in range(1, self._initial_x_dim - 1):
@@ -159,6 +161,7 @@ class HeatSink(Element):
         self._flux_out = 0
         self.reset_final_temp()
         self.__apply_neumann_boundaries()
+        a = 1 #todo: delete this. For testing only
 
         for y in range(1, self._initial_y_dim - 1):
             fin = True

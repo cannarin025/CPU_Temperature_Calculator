@@ -14,3 +14,5 @@ sim.jacobi_solve(1000)
 sim.graph_individual()
 
 a = 1
+
+#todo: Temperature in simulations is skewed left. unsure why. need to fix.
