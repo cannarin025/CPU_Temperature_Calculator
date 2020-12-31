@@ -1,7 +1,5 @@
 from Lib.Simulation import Simulation
 
-#todo: Heat sink does not behave as expected and cannot change grid spacing
-
 sim = Simulation(grid_spacing=0.5, initial_guess=3000) #cannot set grid spacing to 0.5 for some reason (defaults to 0.1)
 
 sim.add_processor(name="CPU", x_dim=14, y_dim=2)
