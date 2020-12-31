@@ -8,7 +8,7 @@ class HeatSink(Element):
     _initial_x_dim = 0
     _initial_y_dim = 0
 
-    def __init__(self, name, n_fins, fin_height, fin_width, fin_spacing, h = 0.1, k = 250e-3, q = 0, amb_temp = 20, initial_guess = 0, tolerance = False, natural = True): #input values in mm
+    def __init__(self, name, n_fins, fin_height, fin_width, fin_spacing, base_thickness = 4, h = 0.1, k = 250e-3, q = 0, amb_temp = 20, initial_guess = 0, tolerance = False, natural = True): #input values in mm
         """
 
         :param name:            dtype:string            name of component
@@ -30,6 +30,7 @@ class HeatSink(Element):
         self._fin_height = fin_height
         self._fin_width = fin_width
         self._fin_spacing = fin_spacing
+        self._base_thickness = base_thickness
         self._h = h
         self._k = k
         self._k_array = np.empty((1,1))
@@ -42,15 +43,15 @@ class HeatSink(Element):
         if self._fin_spacing < 2*self._h:
             raise Exception("Fin spacing must be atleast two cell lengths!")
 
-        if is_divisible(self._fin_spacing, self._h) and is_divisible(self._fin_width, self._h) and is_divisible(self._fin_height + 4, self._h) and is_divisible(4, self._h):
+        if is_divisible(self._fin_spacing, self._h) and is_divisible(self._fin_width, self._h) and is_divisible(self._fin_height + self._base_thickness, self._h) and is_divisible(self._base_thickness, self._h):
             self._x_dim = (self._fin_width + self._fin_spacing) * (self._n_fins - 1) + self._fin_width #width of heatsink in mm
 
             if self._x_dim % 2 != 0:  # checks head sink width is even to make centering on ceramic easier.
                 raise Exception("Heat sink width must be even. Current width:", self._x_dim, "mm")
 
-            self._y_dim = 4 + self._fin_height #height of heatsink in mm
+            self._y_dim = self._base_thickness + self._fin_height #height of heatsink in mm
             self._initial_x_dim = int(self._x_dim / self._h) + 2
-            self._initial_y_dim = int((self._fin_height / self._h) + (4 / self._h)) + 2
+            self._initial_y_dim = int((self._fin_height / self._h) + (self._base_thickness / self._h)) + 2
             self._k_array = np.full((self._initial_y_dim, self._initial_x_dim), self._k)
             self._q_array = np.full((self._initial_y_dim, self._initial_x_dim), self._q)
             self._fin_cells = self._fin_width / self._h
@@ -63,10 +64,10 @@ class HeatSink(Element):
                 fin = True
                 cell_count = 0
                 for x in range(1, self._initial_x_dim - 1): #looping over "real" cells
-                    if y <= 4 / self._h:
+                    if y <= self._base_thickness / self._h:
                         self.set_initial_temp(x, y, self._initial_guess)
 
-                    elif y > 4 / self._h:
+                    elif y > self._base_thickness / self._h:
                         if fin:  # starts counting on a fin
                             self.set_initial_temp(x, y, self._initial_guess)
                             cell_count += 1
@@ -89,7 +90,7 @@ class HeatSink(Element):
     def mount_top(self, object, first_call = None):
         raise Exception("You cannot mount objects ontop of a heat sink. Please mount underneath instead!")
 
-    def __apply_neumann_boundaries(self):
+    def __apply_neumann_boundaries(self): #todo: need to make this account for "top "boundary between fins
         for y in range(self._initial_y_dim):
             for x in range(self._initial_x_dim):
                 if self._natural:
@@ -119,7 +120,7 @@ class HeatSink(Element):
                         ghost_T = self.get_initial_temp(x - 2, y) + 2 * self._h * (-1 * phi_s / self.get_k(x, y))
                         self.set_initial_temp(x, y, ghost_T)
 
-        for y in range(int(4 / self._h), int(self._initial_y_dim)):
+        for y in range(int(self._base_thickness / self._h), int(self._initial_y_dim)):
             fin = True
             cell_count = 0
             for x in range(1, self._initial_x_dim - 1):
@@ -139,6 +140,12 @@ class HeatSink(Element):
 
                 else:
                     cell_count += 1
+                    if cell_count < self._space_cells and y == (self._base_thickness / self._h) + 1:
+                        surf_temp = self.get_initial_temp(x, y - 1)
+                        phi_s = Phi_s(surf_temp, self._amb_temp, natural=self._natural)
+                        ghost_T = self.get_initial_temp(x, y - 2) + 2 * self._h * (-1 * phi_s / self.get_k(x, y))
+                        self.set_initial_temp(x, y, ghost_T)
+
                     if cell_count == self._space_cells:
                         surf_temp = self.get_initial_temp(x + 1, y)
                         phi_s = Phi_s(surf_temp, self._amb_temp, natural=self._natural)
@@ -160,14 +167,14 @@ class HeatSink(Element):
                 #new_T = self._amb_temp #so space inbetween fins is ambient temp
                 new_T = self._initial_guess
                 #new_T = self.get_initial_temp(x,y)
-                if y <= 4 / self._h:
+                if y <= self._base_thickness / self._h:
                     if y == 1 and self.get_mounted_bottom() is not None:
                         new_T = self._Element__mounted_CDS_bottom(x,y)
 
                     else:
                         new_T = self._Element__update_CDS(x,y)
 
-                elif y > 4 / self._h:
+                elif y > self._base_thickness / self._h:
                     if fin:  # starts counting on a fin
                         new_T = self._Element__update_CDS(x,y)
                         cell_count += 1

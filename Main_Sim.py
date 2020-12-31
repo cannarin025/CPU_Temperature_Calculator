@@ -3,6 +3,7 @@ from Lib.Simulation import Simulation
 #todo: Heat sink does not behave as expected and cannot change grid spacing
 
 sim = Simulation(grid_spacing=0.5, initial_guess=3000) #cannot set grid spacing to 0.5 for some reason (defaults to 0.1)
+
 sim.add_processor(name="CPU", x_dim=14, y_dim=2)
 sim.add_ceramic(name = "Casing", x_dim=20, y_dim=4)
 sim.add_heat_sink(name="HeatSink", n_fins=5, fin_height=5, fin_width=2, fin_spacing=2)
