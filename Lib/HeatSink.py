@@ -194,3 +194,40 @@ class HeatSink(Element):
                             fin = True
 
                 self.set_final_temp(x,y, new_T)
+
+    def gs_iteration(self):
+        self._flux_out = 0
+        self.__apply_neumann_boundaries()
+        a = 1 #todo: delete this. For testing only
+
+        for y in range(1, self._initial_y_dim - 1):
+            fin = True
+            cell_count = 0
+            for x in range(1, self._initial_x_dim - 1):
+                #new_T = self._amb_temp #so space inbetween fins is ambient temp
+                new_T = self._initial_guess
+                #new_T = self.get_initial_temp(x,y)
+                if y <= self._base_thickness / self._h:
+                    if y == 1 and self.get_mounted_bottom() is not None:
+                        new_T = self._Element__gs_mounted_CDS_bottom(x,y)
+
+                    else:
+                        new_T = self._Element__gs_update_CDS(x,y)
+
+                elif y > self._base_thickness / self._h:
+                    if fin:  # starts counting on a fin
+                        new_T = self._Element__gs_update_CDS(x,y)
+                        cell_count += 1
+
+                        if cell_count == self._fin_cells:
+                            cell_count = 0
+                            fin = False  # end of fin
+
+                    else:
+                        cell_count += 1
+
+                        if cell_count == self._space_cells:
+                            cell_count = 0
+                            fin = True
+
+                self.set_final_temp(x,y, new_T)

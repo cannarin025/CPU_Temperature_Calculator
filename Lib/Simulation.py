@@ -1,5 +1,6 @@
 from Lib.Element import Element
 from Lib.HeatSink import HeatSink
+import numpy as np
 
 class Simulation:
 
@@ -58,6 +59,9 @@ class Simulation:
         else:
             raise Exception(f'The name "{name}" is not unique')
 
+    def order_object_list(self): #todo: need to write function to sort object list to ensure elements are solved in correct order i.e. bottom to top.
+        pass
+
     def mount_to_bottom(self, target_name, source_name): #mounts source under target
         target = self.get_object_by_name(target_name)
         source = self.get_object_by_name(source_name)
@@ -104,4 +108,16 @@ class Simulation:
     def graph_individual(self):
         for element in self._object_list:
             element.graph_temperature()
+
+    #method for graphing entire system
+    def graph_system(self):
+        system_height = 0
+        system_width = 0
+        for object in self._object_list:
+            system_height += object.get_y_dim()
+            if object.get_x_dim() > system_width:
+                system_width = object.get_x_dim() #max([element.get_x_dim() for element in self._object_list])
+
+        system_array = np.zeros((system_height / self._grid_spacing, system_width / self._grid_spacing))
+
 
