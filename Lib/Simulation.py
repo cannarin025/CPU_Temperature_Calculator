@@ -162,11 +162,3 @@ class Simulation:
         ax1.tick_params(labelsize=10)
         ax2.figure.axes[-1].set_ylabel("Temperature (°C)", size=16)
         plt.show()
-
-# count = 0
-# for i in range(len(c)):
-#     if i >= diff and i < len(a) - diff:
-#         c[i] = b[count]
-#         count += 1
-#
-# print(c)
