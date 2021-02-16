@@ -121,8 +121,8 @@ class Element:
         else:
             print("Array has already been tidied!")
 
-    #Mounting code
-    def get_bounds(self, object): #finds ranges of x values of common boundary
+    # Mounting code
+    def get_bounds(self, object):  # finds ranges of x values of common boundary
         if object.get_h() != self.get_h():
             raise Exception("Grid step sizes for objects being joined must be identical!")
 
@@ -152,7 +152,7 @@ class Element:
 
         return int(boundary_start), int(boundary_end)
 
-    def __mount(self, object, mount_y, boundary_ref): #Creates boundary
+    def __mount(self, object, mount_y, boundary_ref):  # Creates boundary
         boundary_start, boundary_end = self.get_bounds(object)
 
         if self.get_initial_x_dim() > object.get_initial_x_dim():
@@ -163,17 +163,17 @@ class Element:
             boundary_ref.set_self_boundary_start(1)
             boundary_ref.set_self_boundary_end(self.get_initial_x_dim() - 1)
 
-        if boundary_end - boundary_start == self._initial_x_dim - 2: #case self is shorter. (sets entire side as boundary)
+        if boundary_end - boundary_start == self._initial_x_dim - 2:  # case self is shorter. (sets entire side as boundary)
             for x in range(1, self._initial_x_dim - 1):
-                #self.set_final_temp(x, mount_y, -50) #todo: REMOVE
+                #self.set_final_temp(x, mount_y, -50)  # todo: REMOVE
                 pass
 
         else:
-            for x in range(boundary_start, boundary_end): #case where self is longer. (sets required length)
+            for x in range(boundary_start, boundary_end):  # case where self is longer. (sets required length)
                 #self.set_final_temp(x,mount_y, -50) #todo: REMOVE
                 pass
 
-    def mount_top(self, object, first_call = None): #mounts object above self
+    def mount_top(self, object, first_call = None):  # mounts object above self
         if first_call is False:
             return
 
@@ -198,7 +198,7 @@ class Element:
         self.__mount(object, mount_y, self.get_mounted_top())
         object.mount_bottom(self, not first_call)
 
-    def mount_bottom(self, object, first_call = None): #mounts object below self
+    def mount_bottom(self, object, first_call = None):  # mounts object below self
         if first_call is False:
             return
 
@@ -265,7 +265,7 @@ class Element:
                         ghost_T = self.get_initial_temp(x - 2, y) + 2 * self._h * (-1 * phi_s / self.get_k(x, y))
                         self.set_initial_temp(x, y, ghost_T)
 
-    #Jacobi CDS:
+    # Jacobi CDS:
     def __update_CDS(self, x, y):
         q = self.get_q(x,y)
         k = self.get_k(x,y)
@@ -325,7 +325,7 @@ class Element:
 
         return new_T
 
-    #GS CDS:
+    # GS CDS:
     def __gs_update_CDS(self, x, y):
         q = self.get_q(x,y)
         k = self.get_k(x,y)
@@ -387,62 +387,62 @@ class Element:
 
 
     def jacobi_iteration(self):
-        self._flux_out = 0 #resets flux for next iteration
-        self.reset_final_temp() #todo: why do I reset final_temp at end of each iteration?
+        self._flux_out = 0  # resets flux for next iteration
+        self.reset_final_temp()  # todo: why do I reset final_temp at end of each iteration?
         self.__apply_neumann_boundaries()
         # solving iteration of Jacobi method
         for y in range(1, self._initial_y_dim - 1):  # y
             for x in range(1, self._initial_x_dim - 1):  # x
-                #mounted CDS
-                if y == 1 and self.get_mounted_bottom() is not None: #on bottom boundary and mounted
+                # mounted CDS
+                if y == 1 and self.get_mounted_bottom() is not None:  # on bottom boundary and mounted
                     new_T = self.__mounted_CDS_bottom(x,y)
 
                 elif y == self._initial_y_dim - 2 and self.get_mounted_top() is not None:  # on top boundary and mounted
                     new_T = self.__mounted_CDS_top(x,y)
 
-                else: #Ignoring mounting effects
+                else:  # Ignoring mounting effects
                     new_T = self.__update_CDS(x,y)
 
                     if y == 1 or x == 1 or y == self._initial_y_dim - 2 or x == self._initial_x_dim - 2:
-                        self._flux_out += self._h * Phi_s(self.get_initial_temp(x,y), self._amb_temp, natural=self._natural) #sums flux over all exposed sides
+                        self._flux_out += self._h * Phi_s(self.get_initial_temp(x,y), self._amb_temp, natural=self._natural)  # sums flux over all exposed sides
 
                 self.set_final_temp(x, y, new_T)
 
-    def jacobi_solve(self, max_iterations): #Only solves for this element in system. Does not handle interaction.
+    def jacobi_solve(self, max_iterations):  # Only solves for this element in system. Does not handle interaction.
         iteration = 0
         while iteration < max_iterations or np.abs(self._power_out - self._power_produced) <= self._convergence_tolerance:
-            self.jacobi_iteration() #solves for current  iteration
-            self.iteration_end()  #resets initial array to final array to prepare for next iteration
+            self.jacobi_iteration()  # solves for current  iteration
+            self.iteration_end()   # resets initial array to final array to prepare for next iteration
 
         self.finalize_array()
         self._avg_temp = self.get_avg_temp()
 
-    def gs_iteration(self): #todo: verify GS method
-        self._flux_out = 0 #resets flux for next iteration
+    def gs_iteration(self):  # todo: verify GS method
+        self._flux_out = 0  # resets flux for next iteration
         self.__apply_neumann_boundaries()
         # solving iteration of Gauss-Seidel method
         for y in range(1, self._initial_y_dim - 1):  # y
             for x in range(1, self._initial_x_dim - 1):  # x
-                #mounted CDS
-                if y == 1 and self.get_mounted_bottom() is not None: #on bottom boundary and mounted
+                # mounted CDS
+                if y == 1 and self.get_mounted_bottom() is not None:  # on bottom boundary and mounted
                     new_T = self.__gs_mounted_CDS_bottom(x,y)
 
                 elif y == self._initial_y_dim - 2 and self.get_mounted_top() is not None:  # on top boundary and mounted
                     new_T = self.__gs_mounted_CDS_top(x,y)
 
-                else: #Ignoring mounting effects
+                else:  # Ignoring mounting effects
                     new_T = self.__gs_update_CDS(x,y)
 
                     if y == 1 or x == 1 or y == self._initial_y_dim - 2 or x == self._initial_x_dim - 2:
-                        self._flux_out += self._h * Phi_s(self.get_initial_temp(x,y), self._amb_temp, natural=self._natural) #sums flux over all exposed sides
+                        self._flux_out += self._h * Phi_s(self.get_initial_temp(x,y), self._amb_temp, natural=self._natural)  # sums flux over all exposed sides
 
                 self.set_final_temp(x, y, new_T)
 
-    def gs_solve(self, max_iterations): #Only solves for this element in system. Does not handle interaction.
+    def gs_solve(self, max_iterations):  # Only solves for this element in system. Does not handle interaction.
         iteration = 0
         while iteration < max_iterations or np.abs(self._power_out - self._power_produced) <= self._convergence_tolerance:
-            self.jacobi_iteration() #solves for current  iteration
-            self.iteration_end()  #resets initial array to final array to prepare for next iteration
+            self.jacobi_iteration()  # solves for current  iteration
+            self.iteration_end()   # resets initial array to final array to prepare for next iteration
 
         self.finalize_array()
         self._avg_temp = self.get_avg_temp()
@@ -463,7 +463,7 @@ class Element:
             fig.subplots_adjust(bottom=0.2)
             sb.set(font_scale=1.7)
             ax2 = sb.heatmap(self._final_state, cmap="coolwarm", xticklabels=x, yticklabels=y, ax=ax1)
-            #np.flipud(self._final_state) flipped array
+             # np.flipud(self._final_state) flipped array
             if self._name is not None:
                 ax2.set_title(f"{self._name} Temp Variation")
             plt.xlabel("x [mm]")

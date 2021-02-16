@@ -9,9 +9,10 @@ sim.add_heat_sink(name="HeatSink", n_fins=8, fin_height=5, fin_width=2, fin_spac
 sim.mount_to_top("CPU", "Casing")
 sim.mount_to_top("Casing", "HeatSink")
 
-sim.jacobi_solve(3000)
+sim.jacobi_solve(1000)
 
 sim.graph_individual()
+sim.graph_system()
 sim.save_data()
 
 a = 1
