@@ -7,6 +7,7 @@ import seaborn as sb
 
 class Simulation:
     _object_list = []
+    _system_array = None
 
     def __init__(self, ambient_temp=20, wind_speed=20, grid_spacing=0.1, initial_guess=0, tolerance=False,
                  natural=True):
@@ -131,7 +132,7 @@ class Simulation:
             if element.get_mounted_bottom() is None:
                 elements_from_bottom.append(element)
 
-        system_array = np.full((int(system_height / self._grid_spacing), int(system_width / self._grid_spacing)), np.nan)  # adjust value array is filled with to set "external temps" values todo: find good value for this to be
+        self._system_array = np.full((int(system_height / self._grid_spacing), int(system_width / self._grid_spacing)), np.nan)  # adjust value array is filled with to set "external temps" values todo: find good value for this to be
 
         for i in range(len(self._object_list) - 1):  # loops over remaining elements in system and builds ordered list.
             elements_from_bottom.append(elements_from_bottom[-1].get_mounted_top().get_object())
@@ -140,13 +141,13 @@ class Simulation:
         y_start = 0
         for element in elements_from_bottom:
             element_array = element.get_final_temp_array()
-            diff = (system_array.shape[1] - element_array.shape[1]) / 2
+            diff = (self._system_array.shape[1] - element_array.shape[1]) / 2
             for j in range(element_array.shape[0]):  # y dim of array
                 a = element_array.shape[0]
                 count = 0
-                for i in range(system_array.shape[1]):  # x dim of array
-                    if diff <= i < system_array.shape[1] - diff:
-                        system_array[int(y_start) + j, i] = element_array[j, count]
+                for i in range(self._system_array.shape[1]):  # x dim of array
+                    if diff <= i < self._system_array.shape[1] - diff:
+                        self._system_array[int(y_start) + j, i] = element_array[j, count]
                         count += 1
 
             y_start += (element.get_y_dim() / self._grid_spacing)
@@ -154,7 +155,7 @@ class Simulation:
         fig, ax1 = plt.subplots()
         fig.subplots_adjust(bottom=0.2)
         sb.set(font_scale=1.7)
-        ax2 = sb.heatmap(system_array, cmap="coolwarm", xticklabels="x", yticklabels="y", ax=ax1)
+        ax2 = sb.heatmap(self._system_array, cmap="coolwarm", xticklabels="x", yticklabels="y", ax=ax1)
         # np.flipud(self._final_state) flipped array
         plt.xlabel("x [mm]")
         plt.ylabel("y [mm]")
