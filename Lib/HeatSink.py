@@ -168,7 +168,7 @@ class HeatSink(Element):
             cell_count = 0
             for x in range(1, self._initial_x_dim - 1):
                 #new_T = self._amb_temp #so space inbetween fins is ambient temp
-                new_T = self._initial_guess
+                new_T = np.nan  # sets space between fins to nan         todo: find a better way of doing this.
                 #new_T = self.get_initial_temp(x,y)
                 if y <= self._base_thickness / self._h:
                     if y == 1 and self.get_mounted_bottom() is not None:

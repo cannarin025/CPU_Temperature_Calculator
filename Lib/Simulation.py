@@ -131,7 +131,7 @@ class Simulation:
             if element.get_mounted_bottom() is None:
                 elements_from_bottom.append(element)
 
-        system_array = np.full((int(system_height / self._grid_spacing), int(system_width / self._grid_spacing)), self._initial_guess)  # adjust value array is filled with to set "external temps" values todo: find good value for this to be
+        system_array = np.full((int(system_height / self._grid_spacing), int(system_width / self._grid_spacing)), np.nan)  # adjust value array is filled with to set "external temps" values todo: find good value for this to be
 
         for i in range(len(self._object_list) - 1):  # loops over remaining elements in system and builds ordered list.
             elements_from_bottom.append(elements_from_bottom[-1].get_mounted_top().get_object())
