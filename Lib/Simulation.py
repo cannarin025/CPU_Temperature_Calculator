@@ -6,8 +6,10 @@ import seaborn as sb
 
 
 class Simulation:
-    _object_list = []
-    _system_array = None
+    __element_list = []
+    __system_array = None
+    __system_width = 0
+    __system_height = 0
 
     def __init__(self, ambient_temp=20, wind_speed=20, grid_spacing=0.1, initial_guess=0, tolerance=False,
                  natural=True):
@@ -22,11 +24,11 @@ class Simulation:
     def check_unique_name(self, new_name):
         names = []
 
-        if self._object_list == []:
+        if self.__element_list == []:
             return True
 
-        for object in self._object_list:
-            name = object.get_name()
+        for element in self.__element_list:
+            name = element.get_name()
             if name not in names:
                 names.append(name)
 
@@ -36,10 +38,10 @@ class Simulation:
         else:
             return False
 
-    def get_object_by_name(self, name):
-        for object in self._object_list:
-            if object.get_name() == name:
-                return object
+    def get_element_by_name(self, name):
+        for obj in self.__element_list:
+            if obj.get_name() == name:
+                return obj
 
     # setup
     def add_processor(self, name, x_dim, y_dim, q=0.5, k=150e-3):
@@ -47,7 +49,7 @@ class Simulation:
             processor = Element(x_dim=x_dim, y_dim=y_dim, h=self._grid_spacing, k=k, q=q, amb_temp=self._ambient_temp,
                                 initial_guess=self._initial_guess, tolerance=self._tolerance, natural=self._natural,
                                 name=name)
-            self._object_list.append(processor)
+            self.__element_list.append(processor)
         else:
             raise Exception(f'The name "{name}" is not unique')
 
@@ -56,7 +58,7 @@ class Simulation:
             ceramic = Element(x_dim=x_dim, y_dim=y_dim, h=self._grid_spacing, k=k, q=0, amb_temp=self._ambient_temp,
                               initial_guess=self._initial_guess, tolerance=self._tolerance, natural=self._natural,
                               name=name)
-            self._object_list.append(ceramic)
+            self.__element_list.append(ceramic)
         else:
             raise Exception(f'The name "{name}" is not unique')
 
@@ -65,26 +67,48 @@ class Simulation:
             heat_sink = HeatSink(h=self._grid_spacing, k=k, q=0, amb_temp=self._ambient_temp,
                                  initial_guess=self._initial_guess, tolerance=False, natural=True, name=name,
                                  n_fins=n_fins, fin_height=fin_height, fin_width=fin_width, fin_spacing=fin_spacing)
-            self._object_list.append(heat_sink)
+            self.__element_list.append(heat_sink)
         else:
             raise Exception(f'The name "{name}" is not unique')
 
-    def order_object_list(
-            self):  # todo: need to write function to sort object list to ensure elements are solved in correct order i.e. bottom to top.
-        pass
+    def __order_element_list(self):  # todo: need to write function to sort object list to ensure elements are solved in correct order i.e. bottom to top.
+        all_elements = self.__element_list.copy()
+        elements_from_bottom = []  # a list of objects in the system from bottom to top
+        unconnected_elements = []
+        connected_elements = []
+        self.__system_height = 0  # resets system height each time it is calculated
+
+        for element in all_elements:
+            if element.get_mounted_bottom() is None and element.get_mounted_top() is None:
+                # elements with nothing underneath are start point (should have element above)
+                unconnected_elements.append(element)
+
+            elif element.get_mounted_bottom() is None:
+                elements_from_bottom.append(element)  # element connected on top but not on bottom must be on bottom
+
+            else:
+                connected_elements.append(element)
+
+        for i in range(len(connected_elements)):  # loops over remaining elements in system and builds ordered list.
+            elements_from_bottom.append(elements_from_bottom[-1].get_mounted_top().get_target())
+
+        elements_from_bottom += unconnected_elements
+
+        self.__element_list = elements_from_bottom
 
     def mount_to_bottom(self, target_name, source_name):  # mounts source under target
-        target = self.get_object_by_name(target_name)
-        source = self.get_object_by_name(source_name)
+        target = self.get_element_by_name(target_name)
+        source = self.get_element_by_name(source_name)
         target.mount_bottom(source)
 
     def mount_to_top(self, target_name, source_name):  # mounts source ontop of target
-        target = self.get_object_by_name(target_name)
-        source = self.get_object_by_name(source_name)
+        target = self.get_element_by_name(target_name)
+        source = self.get_element_by_name(source_name)
         target.mount_top(source)
 
     # solving
     def jacobi_solve(self, max_iterations):
+        self.__order_element_list()
         convergence = False
         iteration = 0
         while iteration < max_iterations and convergence is False:
@@ -92,10 +116,10 @@ class Simulation:
             if iteration % 100 == 0:
                 print("Current iteration:", iteration)
 
-            for element in self._object_list:  # runs iterations
+            for element in self.__element_list:  # runs iterations
                 element.jacobi_iteration()
 
-            for element in self._object_list:  # ends iterations
+            for element in self.__element_list:  # ends iterations
                 element.iteration_end()
 
             iteration += 1
@@ -106,60 +130,90 @@ class Simulation:
         elif iteration == max_iterations:
             print("Done! Max iterations reached")
 
-        for element in self._object_list:
-            element.finalize_array()
+        for element in self.__element_list:
+            print(f"Avg temp of {element.get_name()} is: ", element.get_avg_temp())
+
+    def gs_solve(self, max_iterations):
+        self.__order_element_list()
+        convergence = False
+        iteration = 0
+        while iteration < max_iterations and convergence is False:
+
+            if iteration % 100 == 0:
+                print("Current iteration:", iteration)
+
+            for element in self.__element_list:  # runs iterations
+                element.gs_iteration()
+
+            for element in self.__element_list:  # ends iterations
+                element.iteration_end()
+
+            iteration += 1
+
+        if convergence:
+            print("Done! Convergence achieved")
+
+        elif iteration == max_iterations:
+            print("Done! Max iterations reached")
+
+        for element in self.__element_list:
             print(f"Avg temp of {element.get_name()} is: ", element.get_avg_temp())
 
     # output
     def save_data(self):
-        for element in self._object_list:
+        for element in self.__element_list:
             element.save_data()
 
     def graph_individual(self):
-        for element in self._object_list:
+        for element in self.__element_list:
             element.graph_temperature()
 
     # method for graphing entire system
     def graph_system(self):
-        elements_from_bottom = []  # a list of objects in the system from bottom to top
-        system_height = 0
-        system_width = 0
-        for element in self._object_list:
-            system_height += element.get_y_dim()
-            if element.get_x_dim() > system_width:
-                system_width = element.get_x_dim()
+        self.__order_element_list()
+        unconnected = []
 
-            if element.get_mounted_bottom() is None:
-                elements_from_bottom.append(element)
+        self.__system_height = 0  # resets system height each time it is calculated
+        for element in self.__element_list:
+            if element.get_mounted_bottom() is not None or element.get_mounted_top() is not None:
+                self.__system_height += element.get_y_dim()
+                if element.get_x_dim() > self.__system_width:
+                    self.__system_width = element.get_x_dim()
+            else:
+                unconnected.append(element)
 
-        self._system_array = np.full((int(system_height / self._grid_spacing), int(system_width / self._grid_spacing)), np.nan)  # adjust value array is filled with to set "external temps" values todo: find good value for this to be
+        #graph all components that are not connected separately
+        for element in unconnected:
+            element.graph_temperature()
 
-        for i in range(len(self._object_list) - 1):  # loops over remaining elements in system and builds ordered list.
-            elements_from_bottom.append(elements_from_bottom[-1].get_mounted_top().get_object())
+        if self.__system_height != 0:
+            #merge temp arrays of all connected elements
+            self.__system_array = np.full((int(self.__system_height / self._grid_spacing), int(self.__system_width / self._grid_spacing)), np.nan)  # adjust value array is filled with to set "external temps" values todo: find good value for this to be
+            # merges all object arrays such that they can be displayed as one. todo: can this be made more efficient?
+            y_start = 0
+            for element in self.__element_list:
+                if element not in unconnected:  # loops over all connected elements
+                    element_array = element.get_temp_array()
+                    diff = (self.__system_array.shape[1] - element_array.shape[1]) / 2  # works out clearance of components on one side
+                    for j in range(element_array.shape[0]):  # y dim of array
+                        a = element_array.shape[0]
+                        count = 0
+                        for i in range(self.__system_array.shape[1]):  # x dim of array
+                            if diff <= i < self.__system_array.shape[1] - diff:  # adds element array starting at correct point in space
+                                self.__system_array[int(y_start) + j, i] = element_array[j, count]
+                                count += 1
 
-        # merges all object arrays such that they can be displayed as one. todo: can this be made more efficient?
-        y_start = 0
-        for element in elements_from_bottom:
-            element_array = element.get_final_temp_array()
-            diff = (self._system_array.shape[1] - element_array.shape[1]) / 2
-            for j in range(element_array.shape[0]):  # y dim of array
-                a = element_array.shape[0]
-                count = 0
-                for i in range(self._system_array.shape[1]):  # x dim of array
-                    if diff <= i < self._system_array.shape[1] - diff:
-                        self._system_array[int(y_start) + j, i] = element_array[j, count]
-                        count += 1
+                    y_start += (element.get_y_dim() / self._grid_spacing)  # increments y value to start next element at correct height
 
-            y_start += (element.get_y_dim() / self._grid_spacing)
-
-        fig, ax1 = plt.subplots()
-        fig.subplots_adjust(bottom=0.2)
-        sb.set(font_scale=1.7)
-        ax2 = sb.heatmap(self._system_array, cmap="coolwarm", xticklabels="x", yticklabels="y", ax=ax1)
-        # np.flipud(self._final_state) flipped array
-        plt.xlabel("x [mm]")
-        plt.ylabel("y [mm]")
-        sb.set(font_scale=1)
-        ax1.tick_params(labelsize=10)
-        ax2.figure.axes[-1].set_ylabel("Temperature (°C)", size=16)
-        plt.show()
+            #plot system temp array
+            fig, ax1 = plt.subplots()
+            fig.subplots_adjust(bottom=0.2)
+            sb.set(font_scale=1.7)
+            ax2 = sb.heatmap(self.__system_array, cmap="coolwarm", xticklabels="x", yticklabels="y", ax=ax1)
+            # np.flipud(self._final_state) flipped array
+            plt.xlabel("x [mm]")
+            plt.ylabel("y [mm]")
+            sb.set(font_scale=1)
+            ax1.tick_params(labelsize=10)
+            ax2.figure.axes[-1].set_ylabel("Temperature (°C)", size=16)
+            plt.show()
